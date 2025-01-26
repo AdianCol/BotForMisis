@@ -174,7 +174,7 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     user_id = query.from_user.id
 
     try:
-        cursor.execute('SELECT note_id, text, media_type, media_url, date FROM notes WHERE user_id = %s', (user_id,))
+        cursor.execute('SELECT note_id, text, media_type, media_url, date FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
         notes = cursor.fetchall()
 
         if not notes:
