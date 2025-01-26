@@ -188,7 +188,7 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 def main() -> None:
     create_tables()  # Create tables on startup
 
-    application = ApplicationBuilder().token(os.environ.get("7403578084:AAHo7TNmbJ_ACyrgpfBPvg6ugH8qcwWjWqY")).build()
+    application = ApplicationBuilder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
