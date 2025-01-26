@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 def connect_db():
     try:
         conn = psycopg2.connect(
-            dbname=os.environ.get("DB_NAME"),
-            user=os.environ.get("DB_USER"),
-            password=os.environ.get("DB_PASSWORD"),
-            host=os.environ.get("DB_HOST"),
-            port=os.environ.get("DB_PORT", 5432)
+            dbname=os.environ.get("railway"),
+            user=os.environ.get("postgres"),
+            password=os.environ.get("FKQgOrWZQDdtnIDHcySBmsAhKUxPaNKs"),
+            host=os.environ.get("postgres.railway.internal"),
+            port=os.environ.get("5432", 5432)
         )
         return conn
     except Exception as e:
@@ -187,7 +187,7 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 def main() -> None:
     create_tables()  # Create tables on startup
 
-    application = ApplicationBuilder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
+    application = ApplicationBuilder().token(os.environ.get("7403578084:AAHo7TNmbJ_ACyrgpfBPvg6ugH8qcwWjWqY")).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
