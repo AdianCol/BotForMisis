@@ -159,11 +159,11 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                     media_type, media_url = media
                     if media_type == 'voice':
                         voice_file_id = update.message.voice.file_id
-                        cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
+                        cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
                                        (user_id, None, 'voice', voice_file_id, datetime.now()))
                     elif media_type == 'photo':
                         photo_file_id = update.message.photo[-1].file_id
-                        cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
+                        cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
                                         (user_id, None, 'photo', photo_file_id, datetime.now()))
                 conn.commit()
             else:
