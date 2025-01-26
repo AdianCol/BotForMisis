@@ -10,7 +10,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 import os
-import psycopg2  # Import PostgreSQL library
+import psycopg2  # Import PostgreSQL connector
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -27,22 +27,23 @@ def connect_db():
             port=os.environ.get("PGPORT")
         )
         return conn
-    except Exception as e:
+    except psycopg2.Error as e:
         logger.error("Error connecting to the database: %s", e)
         return None
 
 conn = connect_db()
 cursor = conn.cursor()
-cursor.execute("SET search_path TO your_schema;")  # Set the schema if needed
 
 # Create tables for users and notes
 def create_tables():
     try:
-        cursor.executescript(''' 
+        cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             username TEXT
         );
+        ''')
+        cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS notes (
             note_id SERIAL PRIMARY KEY,
             user_id INTEGER,
@@ -194,6 +195,8 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
     application.add_handler(MessageHandler(filters.VOICE, text_handler))  # Handle voice messages
     application.add_handler(MessageHandler(filters.PHOTO, text_handler))  # Handle photos
+
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
