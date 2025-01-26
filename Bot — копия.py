@@ -21,10 +21,10 @@ def connect_db():
     try:
         conn = psycopg2.connect(
             dbname=os.environ.get("railway"),
-            user=os.environ.get("postgres"),
+            user=os.environ.get("AdianCol"),
             password=os.environ.get("FKQgOrWZQDdtnIDHcySBmsAhKUxPaNKs"),
             host=os.environ.get("postgres.railway.internal"),
-            port=os.environ.get("5432", 5432)
+            port=os.environ.get(5432)
         )
         return conn
     except Exception as e:
