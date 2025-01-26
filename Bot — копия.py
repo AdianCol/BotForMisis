@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 def connect_db():
     try:
         conn = psycopg2.connect(
-            dbname=os.environ.get("railway"),
+            dbname=os.environ.get("Notes"),
             user=os.environ.get("postgres"),
             password=os.environ.get("FKQgOrWZQDdtnIDHcySBmsAhKUxPaNKs"),
             host=os.environ.get("postgres.railway.internal"),
-            port=os.environ.get("5432", "5432")
+            port=os.environ.get("5829")
         )
         return conn
     except Exception as e:
