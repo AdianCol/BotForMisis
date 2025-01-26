@@ -90,7 +90,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.message.reply_text('Введите текст заметки или отправьте голосовое сообщение/фото:')
         context.user_data['action'] = 'add'
     elif query.data == 'edit':
-        await query.message.reply_text('Введите номер заметки и новый текст, разделенные пробелом:')
+        await query.message.reply_text('Введите номер заметки для редактирования:')
         context.user_data['action'] = 'edit'
     elif query.data == 'delete':
         await query.message.reply_text('Введите номер заметки для удаления:')
@@ -131,11 +131,25 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 await update.message.reply_text('Фотозаметка добавлена.')
             await button_handler(update, context)  # Show buttons after action
         elif action == 'edit':
-            note_id, new_text = update.message.text.split(maxsplit=1)
-            note_id = int(note_id)
+            if 'note_number' not in context.user_data:
+                # First ask for the note number
+                await update.message.reply_text('Введите номер заметки для редактирования:')
+                context.user_data['note_number'] = True  # Set a flag to indicate we're asking for the note number
+            else:
+                # Now we expect the new text for the note
+                note_id = int(update.message.text)
+                context.user_data['note_number'] = False  # Reset the flag
+                context.user_data['note_id'] = note_id  # Store the note ID
+
+                await update.message.reply_text('Введите новый текст заметки:')
+                context.user_data['action'] = 'update_text'  # Set action to update text
+
+        elif action == 'update_text':
+            note_id = context.user_data.get('note_id')
+            new_text = update.message.text
             if note_exists(note_id, user_id):
-                cursor.execute('UPDATE notes SET text = %s WHERE note_id = %s AND user_id = %s', 
-                               (new_text, note_id, user_id))
+                cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
+                               (new_text, 'text', note_id, user_id))
                 conn.commit()
                 await update.message.reply_text(f'Заметка {note_id} обновлена.')
             else:
