@@ -152,6 +152,16 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                                (new_text, 'text', note_id, user_id))
                 conn.commit()
                 await update.message.reply_text(f'Заметка {note_id} обновлена.')
+                
+                # Send media if the note was originally a media type
+                cursor.execute('SELECT media_type, media_url FROM notes WHERE note_id = %s AND user_id = %s', (note_id, user_id))
+                media = cursor.fetchone()
+                if media:
+                    media_type, media_url = media
+                    if media_type == 'voice':
+                        await context.bot.send_voice(chat_id=user_id, voice=media_url)
+                    elif media_type == 'photo':
+                        await context.bot.send_photo(chat_id=user_id, photo=media_url)
             else:
                 await update.message.reply_text(f'Заметка {note_id} не найдена.')
             await button_handler(update, context)  # Show buttons after action
