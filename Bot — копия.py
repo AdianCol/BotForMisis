@@ -24,7 +24,7 @@ def connect_db():
             user=os.environ.get("postgres"),
             password=os.environ.get("FKQgOrWZQDdtnIDHcySBmsAhKUxPaNKs"),
             host=os.environ.get("postgres.railway.internal"),
-            port=os.environ.get("5829")
+            port=os.environ.get("5432")
         )
         return conn
     except Exception as e:
