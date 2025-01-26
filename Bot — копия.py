@@ -195,12 +195,5 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.VOICE, text_handler))  # Handle voice messages
     application.add_handler(MessageHandler(filters.PHOTO, text_handler))  # Handle photos
 
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8443)),
-        url_path="YOUR_WEBHOOK_PATH"
-    )
-    application.bot.set_webhook(url="https://YOUR_CLOUD_URL/YOUR_WEBHOOK_PATH")
-
 if __name__ == '__main__':
     main()
