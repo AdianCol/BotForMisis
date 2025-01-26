@@ -150,7 +150,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             if note_exists(note_id, user_id):
                 cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
                                (new_text, 'text', note_id, user_id))
-                conn.commit()
                 await update.message.reply_text(f'Заметка {note_id} обновлена.')
                 
                 # Send media if the note was originally a media type
@@ -160,10 +159,13 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                     media_type, media_url = media
                     if media_type == 'voice':
                         voice_file_id = update.message.voice.file_id
-                        await context.bot.send_voice(chat_id=user_id, voice=media_url)
+                        cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
+                                       (user_id, None, 'voice', voice_file_id, datetime.now()))
                     elif media_type == 'photo':
                         photo_file_id = update.message.photo[-1].file_id
-                        await context.bot.send_photo(chat_id=user_id, photo=media_url)
+                        cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
+                                        (user_id, None, 'photo', photo_file_id, datetime.now()))
+                conn.commit()
             else:
                 await update.message.reply_text(f'Заметка {note_id} не найдена.')
             await button_handler(update, context)  # Show buttons after action
