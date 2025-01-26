@@ -159,8 +159,10 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 if media:
                     media_type, media_url = media
                     if media_type == 'voice':
+                        voice_file_id = update.message.voice.file_id
                         await context.bot.send_voice(chat_id=user_id, voice=media_url)
                     elif media_type == 'photo':
+                        photo_file_id = update.message.photo[-1].file_id
                         await context.bot.send_photo(chat_id=user_id, photo=media_url)
             else:
                 await update.message.reply_text(f'Заметка {note_id} не найдена.')
