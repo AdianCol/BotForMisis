@@ -248,14 +248,6 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     except psycopg2.Error as e:
         logger.error(f"Ошибка при получении списка заметок: {e}")
         await query.message.reply_text('Ошибка при получении списка заметок.')
-    keyboard = [
-            [InlineKeyboardButton("Добавить заметку", callback_data='add')],
-            [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
-            [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
-            [InlineKeyboardButton("Список заметок", callback_data='list')]
-        ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
 
 # Main function
 def main() -> None:
