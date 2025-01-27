@@ -142,7 +142,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 conn.commit()
                 await update.message.reply_text('Фотозаметка добавлена.')
                 context.user_data['action'] = None  # Reset action after adding
-            await button_handler(update, context)  # Show buttons after action
         elif action == 'edit':
             # Now we expect the new content for the note
             note_number = int(update.message.text)  # Get the note number from user input
@@ -190,7 +189,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
                 await update.message.reply_text(f'Фотозаметка {note_number} обновлена.')
             context.user_data['action'] = None
-            await button_handler(update, context)  # Show buttons after action
         elif action == 'delete':
             note_number = int(update.message.text)  # Get the note number from user input
             cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
@@ -207,7 +205,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             else:
                 await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
             context.user_data['action'] = None
-            await button_handler(update, context)  # Show buttons after action
         if context.user_data['action'] == None:
             keyboard = [
                 [InlineKeyboardButton("Добавить заметку", callback_data='add')],
