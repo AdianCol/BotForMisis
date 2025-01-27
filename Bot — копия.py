@@ -136,41 +136,41 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 await update.message.reply_text('Введите номер заметки для редактирования:')
                 context.user_data['note_number'] = True  # Set a flag to indicate we're asking for the note number
             else:
-                # Now we expect the new text for the note
-                note_id = int(update.message.text)
-                context.user_data['note_number'] = False  # Reset the flag
+                # Now we expect the new content for the note
+                note_number = int(update.message.text)  # Get the note number from user input
+                cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+                note_id = cursor.fetchall()[note_number - 1][0]  # Get the corresponding note ID
+
+                await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
                 context.user_data['note_id'] = note_id  # Store the note ID
+                context.user_data['action'] = 'update_content'  # Set action to update content
 
-                await update.message.reply_text('Введите новый текст заметки:')
-                context.user_data['action'] = 'update_text'  # Set action to update text
-
-        elif action == 'update_text':
+        elif action == 'update_content':
             note_id = context.user_data.get('note_id')
-            new_text = update.message.text
-            if note_exists(note_id, user_id):
-                cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
-                               (new_text, 'text', note_id, user_id))
-                await update.message.reply_text(f'Заметка {note_id} обновлена.')
-                
-                # Send media if the note was originally a media type
-                cursor.execute('SELECT media_type, media_url FROM notes WHERE note_id = %s AND user_id = %s', (note_id, user_id))
-                media = cursor.fetchone()
-                if media:
-                    media_type, media_url = media
-                    if media_type == 'voice':
-                        voice_file_id = update.message.voice.file_id
-                        cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
-                                       (user_id, None, 'voice', voice_file_id, datetime.now()))
-                    elif media_type == 'photo':
-                        photo_file_id = update.message.photo[-1].file_id
-                        cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
-                                        (user_id, None, 'photo', photo_file_id, datetime.now()))
-                conn.commit()
-            else:
-                await update.message.reply_text(f'Заметка {note_id} не найдена.')
+            if update.message.text:
+                new_text = update.message.text
+                if note_exists(note_id, user_id):
+                    cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
+                                   (new_text, 'text', note_id, user_id))
+                    await update.message.reply_text(f'Заметка {note_id} обновлена.')
+                else:
+                    await update.message.reply_text(f'Заметка {note_id} не найдена.')
+            elif update.message.voice:  # Handle voice messages
+                voice_file_id = update.message.voice.file_id
+                cursor.execute('UPDATE notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
+                               ('voice', voice_file_id, note_id, user_id))
+                await update.message.reply_text(f'Голосовая заметка {note_id} обновлена.')
+            elif update.message.photo:  # Handle photos
+                photo_file_id = update.message.photo[-1].file_id
+                cursor.execute('UPDATE notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
+                               ('photo', photo_file_id, note_id, user_id))
+                await update.message.reply_text(f'Фотозаметка {note_id} обновлена.')
             await button_handler(update, context)  # Show buttons after action
         elif action == 'delete':
-            note_id = int(update.message.text)
+            note_number = int(update.message.text)  # Get the note number from user input
+            cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+            note_id = cursor.fetchall()[note_number - 1][0]  # Get the corresponding note ID
+
             if note_exists(note_id, user_id):
                 cursor.execute('DELETE FROM notes WHERE note_id = %s AND user_id = %s', (note_id, user_id))
                 conn.commit()
