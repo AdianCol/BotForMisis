@@ -114,7 +114,16 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     action = context.user_data.get('action')
 
     try:
-        if action == 'add':
+        if update.message.text == ".":
+            keyboard = [
+                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
+                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
+                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
+                [InlineKeyboardButton("Список заметок", callback_data='list')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
+        elif action == 'add':
             # Ensure user exists before adding a note
             cursor.execute('SELECT 1 FROM users WHERE user_id = %s', (user_id,))
             if cursor.fetchone() is None:
@@ -206,15 +215,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             else:
                 await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
             await button_handler(update, context)  # Show buttons after action
-        elif update.message.text == ".":
-            keyboard = [
-                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
-                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
-                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
-                [InlineKeyboardButton("Список заметок", callback_data='list')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
+        context.user_data['action'] = 'add'
     except psycopg2.Error as e:
         logger.error("Ошибка при обработке текста: %s", e)
         await update.message.reply_text('Ошибка при обработке запроса.')
