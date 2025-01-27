@@ -139,11 +139,14 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 # Now we expect the new content for the note
                 note_number = int(update.message.text)  # Get the note number from user input
                 cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
-                note_id = cursor.fetchall()[note_number - 1][0]  # Get the corresponding note ID
-
-                await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
-                context.user_data['note_id'] = note_id  # Store the note ID
-                context.user_data['action'] = 'update_content'  # Set action to update content
+                notes = cursor.fetchall()
+                if note_number > 0 and note_number <= len(notes):
+                    note_id = notes[note_number - 1][0]  # Get the corresponding note ID
+                    await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
+                    context.user_data['note_id'] = note_id  # Store the note ID
+                    context.user_data['action'] = 'update_content'  # Set action to update content
+                else:
+                    await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
 
         elif action == 'update_content':
             note_id = context.user_data.get('note_id')
@@ -169,14 +172,18 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         elif action == 'delete':
             note_number = int(update.message.text)  # Get the note number from user input
             cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
-            note_id = cursor.fetchall()[note_number - 1][0]  # Get the corresponding note ID
+            notes = cursor.fetchall()
+            if note_number > 0 and note_number <= len(notes):
+                note_id = notes[note_number - 1][0]  # Get the corresponding note ID
 
-            if note_exists(note_id, user_id):
-                cursor.execute('DELETE FROM notes WHERE note_id = %s AND user_id = %s', (note_id, user_id))
-                conn.commit()
-                await update.message.reply_text(f'Заметка {note_id} удалена.')
+                if note_exists(note_id, user_id):
+                    cursor.execute('DELETE FROM notes WHERE note_id = %s AND user_id = %s', (note_id, user_id))
+                    conn.commit()
+                    await update.message.reply_text(f'Заметка {note_id} удалена.')
+                else:
+                    await update.message.reply_text(f'Заметка {note_id} не найдена.')
             else:
-                await update.message.reply_text(f'Заметка {note_id} не найдена.')
+                await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
             await button_handler(update, context)  # Show buttons after action
     except psycopg2.Error as e:
         logger.error("Ошибка при обработке текста: %s", e)
