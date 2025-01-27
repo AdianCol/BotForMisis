@@ -100,7 +100,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.message.reply_text('Введите текст заметки или отправьте голосовое сообщение/фото:')
         context.user_data['action'] = 'add'
     elif query.data == 'edit':
-        await query.message.reply_text('Введите номер заметки для редактирования:')
         context.user_data['action'] = 'edit'
         context.user_data['note_number'] = None  # Reset note number flag
     elif query.data == 'delete':
