@@ -114,16 +114,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     action = context.user_data.get('action')
 
     try:
-        if update.message.text == ".":
-            keyboard = [
-                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
-                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
-                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
-                [InlineKeyboardButton("Список заметок", callback_data='list')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
-        elif action == 'add':
+        if action == 'add':
             # Ensure user exists before adding a note
             cursor.execute('SELECT 1 FROM users WHERE user_id = %s', (user_id,))
             if cursor.fetchone() is None:
@@ -218,6 +209,14 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             context.user_data['action'] = None
             await button_handler(update, context)  # Show buttons after action
         if context.user_data['action'] == None:
+            keyboard = [
+                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
+                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
+                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
+                [InlineKeyboardButton("Список заметок", callback_data='list')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
             context.user_data['action'] = 'add'
     except psycopg2.Error as e:
         logger.error("Ошибка при обработке текста: %s", e)
@@ -248,6 +247,14 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 await context.bot.send_voice(chat_id=user_id, voice=note[3])  # Send voice message
             elif note[2] == 'photo':
                 await context.bot.send_photo(chat_id=user_id, photo=note[3])  # Send photo
+        keyboard = [
+            [InlineKeyboardButton("Добавить заметку", callback_data='add')],
+            [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
+            [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
+            [InlineKeyboardButton("Список заметок", callback_data='list')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
 
     except psycopg2.Error as e:
         logger.error(f"Ошибка при получении списка заметок: {e}")
