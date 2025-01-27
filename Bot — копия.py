@@ -254,7 +254,7 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 [InlineKeyboardButton("Список заметок", callback_data='list')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
+            await query.message.reply_text('Выберите действие:', reply_markup=reply_markup)
 
 
     except psycopg2.Error as e:
