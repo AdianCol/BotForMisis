@@ -147,7 +147,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         elif action == 'edit':
             if context.user_data['note_number'] is None:
                 # First ask for the note number
-                await update.message.reply_text()
+                await update.message.reply_text('Введите номер заметки для редактирования:')
                 context.user_data['note_number'] = True  # Set a flag to indicate we're asking for the note number
             else:
                 # Now we expect the new content for the note
