@@ -278,6 +278,8 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 await context.bot.send_photo(chat_id=user_id, photo=note[3])  # Send photo
             elif note[2] == 'video':
                 await context.bot.send_video(chat_id=user_id, video=note[3])  # Send photo
+            elif note[2] == 'video_note':
+                await context.bot.send_video_note(chat_id=user_id, video_note=note[3])  # Send photo
                 
         keyboard = [
             [InlineKeyboardButton("Добавить заметку", callback_data='add')],
