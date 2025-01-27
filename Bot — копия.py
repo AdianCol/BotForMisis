@@ -114,16 +114,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     action = context.user_data.get('action')
 
     try:
-        if update.message.text == ".":
-            keyboard = [
-                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
-                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
-                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
-                [InlineKeyboardButton("Список заметок", callback_data='list')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
-        elif action == 'add':
+        if action == 'add':
             # Ensure user exists before adding a note
             cursor.execute('SELECT 1 FROM users WHERE user_id = %s', (user_id,))
             if cursor.fetchone() is None:
@@ -151,7 +142,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 conn.commit()
                 await update.message.reply_text('Фотозаметка добавлена.')
                 context.user_data['action'] = None  # Reset action after adding
-            await button_handler(update, context)  # Show buttons after action
         elif action == 'edit':
             # Now we expect the new content for the note
             note_number = int(update.message.text)  # Get the note number from user input
@@ -199,7 +189,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
                 await update.message.reply_text(f'Фотозаметка {note_number} обновлена.')
             context.user_data['action'] = None
-            await button_handler(update, context)  # Show buttons after action
         elif action == 'delete':
             note_number = int(update.message.text)  # Get the note number from user input
             cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
@@ -218,11 +207,19 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             context.user_data['action'] = None
             await button_handler(update, context)  # Show buttons after action
         if context.user_data['action'] == None:
+            keyboard = [
+                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
+                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
+                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
+                [InlineKeyboardButton("Список заметок", callback_data='list')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
             context.user_data['action'] = 'add'
     except psycopg2.Error as e:
         logger.error("Ошибка при обработке текста: %s", e)
         await update.message.reply_text('Ошибка при обработке запроса.')
-
+        
 # Command to display the list of notes
 async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
