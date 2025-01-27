@@ -100,9 +100,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.message.reply_text('Введите текст заметки или отправьте голосовое сообщение/фото:')
         context.user_data['action'] = 'add'
     elif query.data == 'edit':
-        await query.message.reply_text()
+        await query.message.reply_text('Введите номер заметки для редактирования:')
         context.user_data['action'] = 'edit'
-        context.user_data['note_number'] = None  # Reset note number flag
     elif query.data == 'delete':
         await query.message.reply_text('Введите номер заметки для удаления:')
         context.user_data['action'] = 'delete'
@@ -145,23 +144,18 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 context.user_data['action'] = None  # Reset action after adding
             await button_handler(update, context)  # Show buttons after action
         elif action == 'edit':
-            if context.user_data['note_number'] is None:
-                # First ask for the note number
-                await update.message.reply_text('Введите номер заметки для редактирования:')
-                context.user_data['note_number'] = True  # Set a flag to indicate we're asking for the note number
+            # Now we expect the new content for the note
+            note_number = int(update.message.text)  # Get the note number from user input
+            cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+            notes = cursor.fetchall()
+            if note_number > 0 and note_number <= len(notes):
+                note_id = notes[note_number - 1][0]  # Get the corresponding note ID
+                await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
+                context.user_data['note_id'] = note_id  # Store the note ID
+                context.user_data['action'] = 'update_content'  # Set action to update content
+                context.user_data['note_number'] = None  # Reset note number after use
             else:
-                # Now we expect the new content for the note
-                note_number = int(update.message.text)  # Get the note number from user input
-                cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
-                notes = cursor.fetchall()
-                if note_number > 0 and note_number <= len(notes):
-                    note_id = notes[note_number - 1][0]  # Get the corresponding note ID
-                    await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
-                    context.user_data['note_id'] = note_id  # Store the note ID
-                    context.user_data['action'] = 'update_content'  # Set action to update content
-                    context.user_data['note_number'] = None  # Reset note number after use
-                else:
-                    await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
+                await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
 
         elif action == 'update_content':
             note_id = context.user_data.get('note_id')
