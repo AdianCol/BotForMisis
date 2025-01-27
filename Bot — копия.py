@@ -149,13 +149,6 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 conn.commit()
                 await update.message.reply_text('Видеозаметка добавлена.')
                 context.user_data['action'] = None  # Reset action after adding
-            elif update.message.sticker:  # Handle stickers
-                sticker_file_id = update.message.sticker.file_id
-                cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
-                               (user_id, None, 'sticker', sticker_file_id, datetime.now()))
-                conn.commit()
-                await update.message.reply_text('Стикер добавлен.')
-                context.user_data['action'] = None  # Reset action after adding
             elif update.message.video_note:  # Handle stickers
                 videonote_file_id = update.message.video_note.file_id
                 cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
@@ -218,16 +211,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 notes = cursor.fetchall()
                 note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
                 await update.message.reply_text(f'Видеозаметка {note_number} обновлена.')
-            elif update.message.sticker:  # Handle stickers
-                sticker_file_id = update.message.sticker.file_id
-                cursor.execute('UPDATE notes SET text = %s, media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
-                               ("Media",'sticker', sticker_file_id, note_id, user_id))
-                # Get the user-friendly note number
-                cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
-                notes = cursor.fetchall()
-                note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
-                await update.message.reply_text(f'Стикер {note_number} обновлен.')
-            elif update.message.video_note:  # Handle stickers
+            elif update.message.video_note:  # Handle 
                 videonote_file_id = update.message.video_note.file_id
                 cursor.execute('UPDATE notes SET text = %s, media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
                                ("Media",'video_note', videonote_file_id, note_id, user_id))
@@ -322,7 +306,6 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.VOICE, text_handler))  # Handle voice messages
     application.add_handler(MessageHandler(filters.PHOTO, text_handler))  # Handle photos
     application.add_handler(MessageHandler(filters.VIDEO, text_handler))  # Handle video messages
-    application.add_handler(MessageHandler(filters.STICKER, text_handler))  # Handle stickers
     application.add_handler(MessageHandler(filters.VIDEO_NOTE, text_handler))  # Handle stickers
 
     application.run_polling()
