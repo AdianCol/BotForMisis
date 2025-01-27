@@ -97,7 +97,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await query.answer()
 
     if query.data == 'add':
-        await query.message.reply_text('Введите текст заметки или отправьте голосовое сообщение/фото:')
+        await query.message.reply_text('Введите текст заметки или отправьте голосовое/видео сообщение/фото:')
         context.user_data['action'] = 'add'
     elif query.data == 'edit':
         await query.message.reply_text('Введите номер заметки для редактирования:')
@@ -163,7 +163,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             notes = cursor.fetchall()
             if note_number > 0 and note_number <= len(notes):
                 note_id = notes[note_number - 1][0]  # Get the corresponding note ID
-                await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
+                await update.message.reply_text('Введите новый текст заметки или отправьте голосовое/видео сообщение/фото:')
                 context.user_data['note_id'] = note_id  # Store the note ID
                 context.user_data['action'] = 'update_content'  # Set action to update content
                 context.user_data['note_number'] = None  # Reset note number after use
