@@ -108,7 +108,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif query.data == 'list':
         await list_notes(update, context)
 
-# Handle text messages, voice messages, and photos
+# Handle text messages, voice messages, photos, and video messages
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     action = context.user_data.get('action')
@@ -141,6 +141,13 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                                (user_id, None, 'photo', photo_file_id, datetime.now()))
                 conn.commit()
                 await update.message.reply_text('Фотозаметка добавлена.')
+                context.user_data['action'] = None  # Reset action after adding
+            elif update.message.video:  # Handle video messages
+                video_file_id = update.message.video.file_id
+                cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
+                               (user_id, None, 'video', video_file_id, datetime.now()))
+                conn.commit()
+                await update.message.reply_text('Видеозаметка добавлена.')
                 context.user_data['action'] = None  # Reset action after adding
         elif action == 'edit':
             # Now we expect the new content for the note
@@ -188,6 +195,15 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 notes = cursor.fetchall()
                 note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
                 await update.message.reply_text(f'Фотозаметка {note_number} обновлена.')
+            elif update.message.video:  # Handle video messages
+                video_file_id = update.message.video.file_id
+                cursor.execute('UPDATE  text = %s, notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
+                               ("Media",'video', video_file_id, note_id, user_id))
+                # Get the user-friendly note number
+                cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+                notes = cursor.fetchall()
+                note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
+                await update.message.reply_text(f'Видеозаметка {note_number} обновлена.')
             context.user_data['action'] = None
         elif action == 'delete':
             note_number = int(update.message.text)  # Get the note number from user input
@@ -245,23 +261,20 @@ async def list_notes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             elif note[2] == 'photo':
                 await context.bot.send_photo(chat_id=user_id, photo=note[3])  # Send photo
                 
-        if True :
-            print(577575)
-            keyboard = [
-                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
-                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
-                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
-                [InlineKeyboardButton("Список заметок", callback_data='list')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.message.reply_text('Выберите действие:', reply_markup=reply_markup)
+        keyboard = [
+            [InlineKeyboardButton("Добавить заметку", callback_data='add')],
+            [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
+            [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
+            [InlineKeyboardButton("Список заметок", callback_data='list')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.message.reply_text('Выберите действие:', reply_markup=reply_markup)
 
 
     except psycopg2.Error as e:
         logger.error(f"Ошибка при получении списка заметок: {e}")
         await query.message.reply_text('Ошибка при получении списка заметок.')
-        
-    
+
 # Main function
 def main() -> None:
     create_tables()  # Create tables on startup
@@ -274,6 +287,7 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
     application.add_handler(MessageHandler(filters.VOICE, text_handler))  # Handle voice messages
     application.add_handler(MessageHandler(filters.PHOTO, text_handler))  # Handle photos
+    application.add_handler(MessageHandler(filters.VIDEO, text_handler))  # Handle video messages
 
     application.run_polling()
 
