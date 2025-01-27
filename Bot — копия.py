@@ -100,9 +100,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.message.reply_text('Введите текст заметки или отправьте голосовое сообщение/фото:')
         context.user_data['action'] = 'add'
     elif query.data == 'edit':
-        context.user_data['note_number'] = None
-        #await query.message.reply_text('Введите номер заметки для редактирования:')
-        context.user_data['action'] = 'edit' 
+        await query.message.reply_text('Введите номер заметки для редактирования:')
+        context.user_data['action'] = 'edit'
+        context.user_data['note_number'] = None  # Reset note number flag
     elif query.data == 'delete':
         await query.message.reply_text('Введите номер заметки для удаления:')
         context.user_data['action'] = 'delete'
@@ -145,9 +145,9 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 context.user_data['action'] = None  # Reset action after adding
             await button_handler(update, context)  # Show buttons after action
         elif action == 'edit':
-            await update.message.reply_text('Введите номер заметки для редактирования:')
             if context.user_data['note_number'] is None:
                 # First ask for the note number
+                await update.message.reply_text()
                 context.user_data['note_number'] = True  # Set a flag to indicate we're asking for the note number
             else:
                 # Now we expect the new content for the note
