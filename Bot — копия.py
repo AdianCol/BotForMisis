@@ -81,6 +81,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Привет! Я бот для ведения заметок. Выберите действие:', reply_markup=reply_markup)
 
+# Command /help
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    help_text = (
+        "Я бот для ведения заметок. Вот что я умею:\n"
+        "/start - Начать взаимодействие с ботом\n"
+        "/help - Получить информацию о боте\n"
+        "Вы можете добавлять, редактировать и удалять заметки."
+    )
+    await update.message.reply_text(help_text)
+
 # Handle button presses
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -197,6 +207,15 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             else:
                 await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
             await button_handler(update, context)  # Show buttons after action
+        elif update.message.text == ".":
+            keyboard = [
+                [InlineKeyboardButton("Добавить заметку", callback_data='add')],
+                [InlineKeyboardButton("Редактировать заметку", callback_data='edit')],
+                [InlineKeyboardButton("Удалить заметку", callback_data='delete')],
+                [InlineKeyboardButton("Список заметок", callback_data='list')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text('Выберите действие:', reply_markup=reply_markup)
     except psycopg2.Error as e:
         logger.error("Ошибка при обработке текста: %s", e)
         await update.message.reply_text('Ошибка при обработке запроса.')
@@ -238,6 +257,7 @@ def main() -> None:
     application = ApplicationBuilder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))  # Register the /help command
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
     application.add_handler(MessageHandler(filters.VOICE, text_handler))  # Handle voice messages
