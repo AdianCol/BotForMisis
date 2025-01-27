@@ -155,19 +155,31 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 if note_exists(note_id, user_id):
                     cursor.execute('UPDATE notes SET text = %s, media_type = %s WHERE note_id = %s AND user_id = %s', 
                                    (new_text, 'text', note_id, user_id))
-                    await update.message.reply_text(f'Заметка {note_id} обновлена.')
+                    # Get the user-friendly note number
+                    cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+                    notes = cursor.fetchall()
+                    note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
+                    await update.message.reply_text(f'Заметка {note_number} обновлена.')
                 else:
                     await update.message.reply_text(f'Заметка {note_id} не найдена.')
             elif update.message.voice:  # Handle voice messages
                 voice_file_id = update.message.voice.file_id
                 cursor.execute('UPDATE notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
                                ('voice', voice_file_id, note_id, user_id))
-                await update.message.reply_text(f'Голосовая заметка {note_id} обновлена.')
+                # Get the user-friendly note number
+                cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+                notes = cursor.fetchall()
+                note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
+                await update.message.reply_text(f'Голосовая заметка {note_number} обновлена.')
             elif update.message.photo:  # Handle photos
                 photo_file_id = update.message.photo[-1].file_id
                 cursor.execute('UPDATE notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
                                ('photo', photo_file_id, note_id, user_id))
-                await update.message.reply_text(f'Фотозаметка {note_id} обновлена.')
+                # Get the user-friendly note number
+                cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
+                notes = cursor.fetchall()
+                note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
+                await update.message.reply_text(f'Фотозаметка {note_number} обновлена.')
             await button_handler(update, context)  # Show buttons after action
         elif action == 'delete':
             note_number = int(update.message.text)  # Get the note number from user input
@@ -179,7 +191,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 if note_exists(note_id, user_id):
                     cursor.execute('DELETE FROM notes WHERE note_id = %s AND user_id = %s', (note_id, user_id))
                     conn.commit()
-                    await update.message.reply_text(f'Заметка {note_id} удалена.')
+                    await update.message.reply_text(f'Заметка {note_number} удалена.')
                 else:
                     await update.message.reply_text(f'Заметка {note_id} не найдена.')
             else:
