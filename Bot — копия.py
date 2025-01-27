@@ -102,6 +102,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif query.data == 'edit':
         await query.message.reply_text('Введите номер заметки для редактирования:')
         context.user_data['action'] = 'edit'
+        context.user_data['note_number'] = None  # Reset note number flag
     elif query.data == 'delete':
         await query.message.reply_text('Введите номер заметки для удаления:')
         context.user_data['action'] = 'delete'
@@ -127,21 +128,24 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                                (user_id, text, 'text', None, datetime.now()))
                 conn.commit()
                 await update.message.reply_text('Заметка добавлена.')
+                context.user_data['action'] = None  # Reset action after adding
             elif update.message.voice:  # Handle voice messages
                 voice_file_id = update.message.voice.file_id
                 cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
                                (user_id, None, 'voice', voice_file_id, datetime.now()))
                 conn.commit()
                 await update.message.reply_text('Голосовая заметка добавлена.')
+                context.user_data['action'] = None  # Reset action after adding
             elif update.message.photo:  # Handle photos
                 photo_file_id = update.message.photo[-1].file_id  # Get the highest resolution photo
                 cursor.execute('INSERT INTO notes (user_id, text, media_type, media_url, date) VALUES (%s, %s, %s, %s, %s)', 
                                (user_id, None, 'photo', photo_file_id, datetime.now()))
                 conn.commit()
                 await update.message.reply_text('Фотозаметка добавлена.')
+                context.user_data['action'] = None  # Reset action after adding
             await button_handler(update, context)  # Show buttons after action
         elif action == 'edit':
-            if 'note_number' not in context.user_data:
+            if context.user_data['note_number'] is None:
                 # First ask for the note number
                 await update.message.reply_text('Введите номер заметки для редактирования:')
                 context.user_data['note_number'] = True  # Set a flag to indicate we're asking for the note number
