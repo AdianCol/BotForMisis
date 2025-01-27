@@ -159,6 +159,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                     await update.message.reply_text('Введите новый текст заметки или отправьте голосовое сообщение/фото:')
                     context.user_data['note_id'] = note_id  # Store the note ID
                     context.user_data['action'] = 'update_content'  # Set action to update content
+                    context.user_data['note_number'] = None  # Reset note number after use
                 else:
                     await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
 
