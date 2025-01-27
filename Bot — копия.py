@@ -183,7 +183,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             elif update.message.voice:  # Handle voice messages
                 voice_file_id = update.message.voice.file_id
                 cursor.execute('UPDATE notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
-                               ('voice', voice_file_id, note_id, user_id))
+                               ('Media','voice', voice_file_id, note_id, user_id))
                 # Get the user-friendly note number
                 cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
                 notes = cursor.fetchall()
@@ -192,7 +192,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             elif update.message.photo:  # Handle photos
                 photo_file_id = update.message.photo[-1].file_id
                 cursor.execute('UPDATE notes SET media_type = %s, media_url = %s WHERE note_id = %s AND user_id = %s', 
-                               ('photo', photo_file_id, note_id, user_id))
+                               ('Media','photo', photo_file_id, note_id, user_id))
                 # Get the user-friendly note number
                 cursor.execute('SELECT note_id FROM notes WHERE user_id = %s ORDER BY note_id', (user_id,))
                 notes = cursor.fetchall()
