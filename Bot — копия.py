@@ -198,6 +198,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 notes = cursor.fetchall()
                 note_number = next((i + 1 for i, note in enumerate(notes) if note[0] == note_id), None)
                 await update.message.reply_text(f'Фотозаметка {note_number} обновлена.')
+            context.user_data['action'] = None
             await button_handler(update, context)  # Show buttons after action
         elif action == 'delete':
             note_number = int(update.message.text)  # Get the note number from user input
@@ -214,8 +215,10 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                     await update.message.reply_text(f'Заметка {note_id} не найдена.')
             else:
                 await update.message.reply_text('Неверный номер заметки. Пожалуйста, попробуйте снова.')
+            context.user_data['action'] = None
             await button_handler(update, context)  # Show buttons after action
-        context.user_data['action'] = 'add'
+        if context.user_data['action'] == None:
+            context.user_data['action'] = 'add'
     except psycopg2.Error as e:
         logger.error("Ошибка при обработке текста: %s", e)
         await update.message.reply_text('Ошибка при обработке запроса.')
