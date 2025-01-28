@@ -11,7 +11,6 @@ from telegram.ext import (
 from datetime import datetime
 import os
 import psycopg2  # Import PostgreSQL connector
-
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
